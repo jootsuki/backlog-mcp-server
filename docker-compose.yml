@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backlog-mcp:
+    build:
+      context: .
+      target: ${NODE_ENV:-production}
+    container_name: backlog-mcp-server
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - BACKLOG_SPACE_URL=${BACKLOG_SPACE_URL:-https://example.backlog.com}
+      - BACKLOG_API_KEY=${BACKLOG_API_KEY:-your_api_key}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    init: true
+    restart: unless-stopped
+    stdin_open: true # MCPサーバーの標準入力を有効化
+    tty: true       # 疑似TTYを割り当て
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep 'node' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: >
+      sh -c "if [ \"$${NODE_ENV}\" = \"development\" ]; then
+               npm run dev;
+             else
+               npm start;
+             fi"
